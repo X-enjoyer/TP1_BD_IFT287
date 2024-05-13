@@ -1,7 +1,18 @@
 package tp1;
 
+import org.xml.sax.helpers.DefaultHandler;
+
+import javax.json.Json;
+import javax.json.stream.JsonGenerator;
+import javax.json.stream.JsonGeneratorFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.StringTokenizer;
+import java.lang.System;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class Devoir1 {
 
@@ -10,6 +21,8 @@ public class Devoir1 {
     private static final String CMD_QUITTER = "quitter";
     private static final String TYPE_XML = "xml";
     private static final String TYPE_JSON = "json";
+
+    private static MainBody m_mainBody;
 
     public static void main(String[] args) {
         try
@@ -57,6 +70,14 @@ public class Devoir1 {
                         System.out.println("Debut de l'importation du fichier XML " + nomFichier);
                         // Votre code d'importation XML ici (Partie 2)
 
+                        SAXParserFactory factory = SAXParserFactory.newInstance();
+                        factory.setValidating(true);
+                        SAXParser parser = factory.newSAXParser();
+                        DefaultHandler handler = new HumanBodyHandler();
+                        parser.parse(new File("HumanBody.xml"), handler);
+
+                        m_mainBody = ((HumanBodyHandler) handler).getMainBody();
+
 
                     }
                     else if (extension.equals(TYPE_JSON)){
@@ -79,8 +100,15 @@ public class Devoir1 {
                     else if (extension.equals(TYPE_JSON)){
                         System.out.println("Debut de l'exportation vers le fichier JSON " + nomFichier);
                         //Votre code d'exportation JSON ici (Partie 3)
-
-
+                        Map<String, Object> config = new HashMap<String, Object>(1);
+                        config.put(JsonGenerator.PRETTY_PRINTING, true);
+                        StringWriter w = new StringWriter();
+                        JsonGeneratorFactory gen = Json.createGeneratorFactory(config);
+                        JsonGenerator jsonGenerator = gen.createGenerator(w);
+                        FileWriter file = new FileWriter("output.json");
+                        m_mainBody.toJson(jsonGenerator);
+                        file.write(w.toString());
+                        file.close();
                     }
                     else {
                         System.out.println("Le système ne supporte actuellement pas l'exportation vers les fichiers au format " + extension);
