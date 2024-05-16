@@ -1,8 +1,11 @@
 package tp1;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
-
+import java.io.FileWriter;
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import java.util.LinkedList;
 import java.util.List;
 import javax.json.Json;
@@ -21,6 +24,16 @@ public class System {
         this.setName(l.getValue("name"));
         this.setType(Integer.parseInt(l.getValue("type")));
         m_flowList = new LinkedList<Flow>();
+    }
+
+    public System(JsonObject json){
+        this.setId(json.getInt("id"));
+        this.setName(json.getString("name"));
+        this.setType(json.getInt("type"));
+        m_flowList = new LinkedList<Flow>();
+        for(JsonValue v : json.getJsonArray("Flows")){
+            m_flowList.add(new Flow((JsonObject)v));
+        }
     }
 
     public void addFlow(Flow f){
@@ -64,6 +77,18 @@ public class System {
         }
         gen.writeEnd();
         gen.writeEnd();
+    }
+
+    public void toXml(Document doc, Element parent){
+        Element system = doc.createElement("System");
+        parent.appendChild(system);
+        system.setAttribute("id", Integer.toString(m_id));
+        system.setAttribute("name", m_name);
+        system.setAttribute("type", Integer.toString(m_type));
+        for(Flow f : m_flowList){
+            f.toXml(doc, system);
+        }
+
     }
 }
 

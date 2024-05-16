@@ -8,6 +8,8 @@ import javax.json.*;
 import javax.json.stream.JsonGenerator;
 
 
+import com.sun.tools.javac.Main;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
@@ -23,6 +25,15 @@ public class MainBody {
     public MainBody(Attributes l) {
         this.setBodyName(l.getValue("bodyName"));
         this.setBodyID(Integer.parseInt(l.getValue("bodyID")));
+    }
+
+    public MainBody(JsonObject json) {
+        this.setBodyName(json.getString("bodyName"));
+        this.setBodyID(json.getInt("bodyID"));
+        m_systems = new Systems(json.getJsonArray("Systems"));
+        this.setSystems(m_systems);
+        m_organs = new Organs(json.getJsonArray("Organs"));
+        this.setOrgans(m_organs);
     }
 
 
@@ -59,5 +70,16 @@ public class MainBody {
         m_organs.toJson(gen);
         gen.writeEnd();
         gen.close();
+    }
+
+    public void toXml(Document doc){
+        Element rootElement = doc.createElement("MainBody");
+        doc.appendChild(rootElement);
+
+        rootElement.setAttribute("bodyName", m_bodyName);
+        rootElement.setAttribute("bodyID", Integer.toString(m_bodyID));
+
+        m_systems.toXml(doc, rootElement);
+        m_organs.toXml(doc, rootElement);
     }
 }

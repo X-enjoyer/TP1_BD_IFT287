@@ -59,11 +59,11 @@ public class HumanBodyHandler extends DefaultHandler {
                 break;
             case "Connectible":
                 connectible = new Connectible();
-                flow.addConnectible(connectible);
+                flow.setConnectible(connectible);
                 break;
             case "Connections":
                 connections = new Connections();
-                flow.addConnections(connections);
+                flow.setConnections(connections);
                 break;
             case "Connection":
                 connection = new Connection(attrs);

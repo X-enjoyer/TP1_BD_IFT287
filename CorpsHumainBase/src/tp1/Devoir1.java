@@ -1,12 +1,21 @@
 package tp1;
 
+import org.w3c.dom.Document;
+import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.StringTokenizer;
 import java.lang.System;
@@ -74,7 +83,7 @@ public class Devoir1 {
                         factory.setValidating(true);
                         SAXParser parser = factory.newSAXParser();
                         DefaultHandler handler = new HumanBodyHandler();
-                        parser.parse(new File("HumanBody.xml"), handler);
+                        parser.parse(new File(nomFichier), handler);
 
                         m_mainBody = ((HumanBodyHandler) handler).getMainBody();
 
@@ -83,6 +92,13 @@ public class Devoir1 {
                     else if (extension.equals(TYPE_JSON)){
                         System.out.println("Debut de l'importation du fichier JSON " + nomFichier);
                         //Votre code d'importation JSON ici (Partie 4)
+
+                        JsonReader jsonReader = Json.createReader(new FileReader(nomFichier));
+                        JsonStructure jsonStructure = jsonReader.read();
+                        jsonReader.close();
+                        JsonObject jsonObject = (JsonObject) jsonStructure;
+
+                        m_mainBody = new MainBody(jsonObject);
 
 
                     }
@@ -94,8 +110,20 @@ public class Devoir1 {
                     if(extension.equals(TYPE_XML)){
                         System.out.println("Debut de l'exportation vers le fichier XML " + nomFichier);
                         // Votre code d'exportation XML ici (Partie 4)
+                        FileOutputStream file = new FileOutputStream(nomFichier);
+                        PrintStream printStream = new PrintStream(file);
 
+                        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                        Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
 
+                        m_mainBody.toXml(document);
+
+                        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                        javax.xml.transform.Transformer transformer = transformerFactory.newTransformer();
+                        transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+                        DOMSource source = new DOMSource(document);
+                        StreamResult result = new StreamResult(printStream);
+                        transformer.transform(source, result);
                     }
                     else if (extension.equals(TYPE_JSON)){
                         System.out.println("Debut de l'exportation vers le fichier JSON " + nomFichier);
@@ -105,7 +133,7 @@ public class Devoir1 {
                         StringWriter w = new StringWriter();
                         JsonGeneratorFactory gen = Json.createGeneratorFactory(config);
                         JsonGenerator jsonGenerator = gen.createGenerator(w);
-                        FileWriter file = new FileWriter("output.json");
+                        FileWriter file = new FileWriter(nomFichier);
                         m_mainBody.toJson(jsonGenerator);
                         file.write(w.toString());
                         file.close();
